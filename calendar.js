@@ -63,9 +63,10 @@ function displayGroupedEvents(events) {
 
   var grouped = {};
 
+  // regrouper par jour
   for (var i = 0; i < events.length; i++) {
     var event = events[i];
-    var dateKey = event.start.toDateString();
+    var dateKey = new Date(event.start.getFullYear(), event.start.getMonth(), event.start.getDate()).getTime();
 
     if (!grouped[dateKey]) {
       grouped[dateKey] = [];
@@ -74,12 +75,25 @@ function displayGroupedEvents(events) {
     grouped[dateKey].push(event);
   }
 
+  // trier les jours
   var keys = Object.keys(grouped).sort(function(a, b) {
-    return new Date(a) - new Date(b);
+    return a - b;
   });
 
+  // calculer la fenêtre : aujourd’hui + 3 jours
+  var today = new Date();
+  today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  var maxDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+  // afficher uniquement les jours dans la fenêtre
   for (var j = 0; j < keys.length; j++) {
-    var date = new Date(keys[j]);
+    var timestamp = parseInt(keys[j], 10);
+    var date = new Date(timestamp);
+
+    if (date < today || date > maxDate) {
+      continue; // ignorer les jours hors fenêtre
+    }
+
     var label = date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
     var block = document.createElement("div");
