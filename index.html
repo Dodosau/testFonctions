@@ -1,111 +1,54 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Calendrier iCloud</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
-    h2 {
-      font-size: 20px;
-      margin-top: 30px;
-      margin-bottom: 10px;
-    }
-    .event {
-      margin-bottom: 8px;
-      padding: 8px;
-      background: white;
-      border-radius: 6px;
-      box-shadow: 0 0 2px rgba(0,0,0,0.1);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier iCloud – Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+    </style>
 </head>
+
 <body>
-  <h1 id="date-title">Calendrier du jour</h1>
+    <h1>Calendrier iCloud (fichier ICS synchronisé)</h1>
 
-  <h2>Aujourd’hui</h2>
-  <div id="today"></div>
+    <pre id="output">Chargement…</pre>
 
-  <h2>Demain</h2>
-  <div id="tomorrow"></div>
+    <script>
+        async function loadLocalICS() {
+            const url = "calendar.ics"; // fichier mis à jour par GitHub Actions
 
-  <h2>À venir</h2>
-  <div id="upcoming"></div>
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
 
-  <script>
-    function parseICS(icsText) {
-      const events = [];
-      const blocks = icsText.split("BEGIN:VEVENT").slice(1);
-
-      for (const block of blocks) {
-        const summary = block.match(/SUMMARY:(.+)/)?.[1]?.trim();
-        const dtstart = block.match(/DTSTART(?:;TZID=[^:]+)?:([0-9T]+)/)?.[1];
-        const dtend = block.match(/DTEND(?:;TZID=[^:]+)?:([0-9T]+)/)?.[1];
-
-        if (summary && dtstart) {
-          const start = parseICSTime(dtstart);
-          const end = dtend ? parseICSTime(dtend) : null;
-          events.push({ summary, start, end });
+                document.getElementById("output").textContent = text;
+            } catch (e) {
+                document.getElementById("output").textContent = "Erreur : " + e;
+            }
         }
-      }
 
-      return events;
-    }
-
-    function parseICSTime(str) {
-      const year = +str.slice(0,4);
-      const month = +str.slice(4,6)-1;
-      const day = +str.slice(6,8);
-      const hour = +str.slice(9,11);
-      const minute = +str.slice(11,13);
-      return new Date(year, month, day, hour, minute);
-    }
-
-    function formatTime(date) {
-      return `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
-    }
-
-    function formatDate(date) {
-      return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    }
-
-    async function loadCalendar() {
-      const response = await fetch("calendar.ics");
-      const text = await response.text();
-      const events = parseICS(text);
-
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-
-      document.getElementById("date-title").textContent = formatDate(today);
-
-      for (const event of events) {
-        const date = new Date(event.start.getFullYear(), event.start.getMonth(), event.start.getDate());
-        const time = formatTime(event.start) + (event.end ? ` à ${formatTime(event.end)}` : '');
-        const html = `<div class="event">${time} — ${event.summary}</div>`;
-
-        if (date.getTime() === today.getTime()) {
-          document.getElementById("today").innerHTML += html;
-        } else if (date.getTime() === tomorrow.getTime()) {
-          document.getElementById("tomorrow").innerHTML += html;
-        } else if (date > tomorrow) {
-          const day = formatDate(date);
-          document.getElementById("upcoming").innerHTML += `<div class="event">${day} — ${time} — ${event.summary}</div>`;
-        }
-      }
-    }
-
-    loadCalendar();
-  </script>
+        loadLocalICS();
+    </script>
 </body>
 </html>
