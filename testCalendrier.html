@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test iCloud ICS</title>
+</head>
+<body>
+    <h1>Test iCloud Calendar</h1>
+    <pre id="output">Chargement…</pre>
+
+    <script>
+        async function testICS() {
+            const url = "https://p149-caldav.icloud.com/published/2/MjAxMzUxNTc3NTkyMDEzNcr33mN1DGhEldXvug77KN0t9d1rebBleay0FCAjfVQLuIMQEM2Z-MHl8yNkiiJKBWwm3k4FQkJ6pFVfQRdCTIk";
+
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                document.getElementById("output").textContent = text;
+            } catch (e) {
+                document.getElementById("output").textContent = "Erreur : " + e;
+            }
+        }
+
+        testICS();
+    </script>
+</body>
+</html>
