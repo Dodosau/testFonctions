@@ -1,36 +1,32 @@
 function loadCalendar() {
   fetch("calendar.ics")
-    .then(function(response) { return response.text(); })
-    .then(function(text) {
-      var events = parseICS(text);
+    .then(r => r.text())
+    .then(text => {
+      const events = parseICS(text);
       displayGroupedEvents(events);
     })
-    .catch(function(e) {
+    .catch(e => {
       document.getElementById("calendar").innerHTML = "Erreur : " + e;
     });
 }
 
 function parseICS(text) {
-  var events = [];
-  var blocks = text.split("BEGIN:VEVENT");
+  const events = [];
+  const blocks = text.split("BEGIN:VEVENT");
 
-  for (var i = 1; i < blocks.length; i++) {
-    var block = blocks[i];
+  for (let i = 1; i < blocks.length; i++) {
+    const block = blocks[i];
 
-    var summaryMatch = block.match(/SUMMARY:(.+)/);
-    var dtstartMatch = block.match(/DTSTART(?:;TZID=[^:]+)?:([0-9T]+)/);
-    var dtendMatch = block.match(/DTEND(?:;TZID=[^:]+)?:([0-9T]+)/);
+    const summaryMatch = block.match(/SUMMARY:(.+)/);
+    const dtstartMatch = block.match(/DTSTART(?:;TZID=[^:]+)?:([0-9T]+)/);
+    const dtendMatch = block.match(/DTEND(?:;TZID=[^:]+)?:([0-9T]+)/);
 
     if (summaryMatch && dtstartMatch) {
-      var summary = summaryMatch[1].trim();
-      var start = parseICSTime(dtstartMatch[1]);
-      var end = dtendMatch ? parseICSTime(dtendMatch[1]) : null;
+      const summary = summaryMatch[1].trim();
+      const start = parseICSTime(dtstartMatch[1]);
+      const end = dtendMatch ? parseICSTime(dtendMatch[1]) : null;
 
-      events.push({
-        summary: summary,
-        start: start,
-        end: end
-      });
+      events.push({ summary, start, end });
     }
   }
 
@@ -38,92 +34,105 @@ function parseICS(text) {
 }
 
 function parseICSTime(str) {
-  var year = parseInt(str.slice(0, 4), 10);
-  var month = parseInt(str.slice(4, 6), 10) - 1;
-  var day = parseInt(str.slice(6, 8), 10);
-  var hour = parseInt(str.slice(9, 11), 10);
-  var minute = parseInt(str.slice(11, 13), 10);
-
-  return new Date(year, month, day, hour, minute);
+  return new Date(
+    parseInt(str.slice(0, 4)),
+    parseInt(str.slice(4, 6)) - 1,
+    parseInt(str.slice(6, 8)),
+    parseInt(str.slice(9, 11)),
+    parseInt(str.slice(11, 13))
+  );
 }
 
 function formatTime(date) {
-  var h = date.getHours();
-  var m = date.getMinutes();
-
-  if (h < 10) h = "0" + h;
-  if (m < 10) m = "0" + m;
-
+  const h = String(date.getHours()).padStart(2, "0");
+  const m = String(date.getMinutes()).padStart(2, "0");
   return h + ":" + m;
 }
 
 function displayGroupedEvents(events) {
-  var container = document.getElementById("calendar");
+  const container = document.getElementById("calendar");
   container.innerHTML = "";
 
-  var grouped = {};
+  const now = new Date();
 
-  for (var i = 0; i < events.length; i++) {
-    var event = events[i];
-    var dateKey = event.start.toDateString();
+  // -----------------------------
+  // 1️⃣ Définir la fenêtre : aujourd’hui → +3 jours
+  // -----------------------------
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const maxDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
 
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = [];
-    }
-
-    grouped[dateKey].push(event);
-  }
-
-  var keys = Object.keys(grouped).sort(function(a, b) {
-    return new Date(a) - new Date(b);
+  // -----------------------------
+  // 2️⃣ Garder seulement les événements dans cette fenêtre
+  // -----------------------------
+  events = events.filter(ev => {
+    const day = new Date(ev.start.getFullYear(), ev.start.getMonth(), ev.start.getDate());
+    return day >= today && day <= maxDate;
   });
 
-  for (var j = 0; j < keys.length; j++) {
-    var date = new Date(keys[j]);
-    var label = date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  // -----------------------------
+  // 3️⃣ Supprimer les événements déjà terminés
+  // -----------------------------
+  events = events.filter(ev => !ev.end || ev.end > now);
 
-    var block = document.createElement("div");
+  // -----------------------------
+  // 4️⃣ Regrouper par jour
+  // -----------------------------
+  const grouped = {};
+  for (const ev of events) {
+    const key = new Date(ev.start.getFullYear(), ev.start.getMonth(), ev.start.getDate()).getTime();
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(ev);
+  }
+
+  // -----------------------------
+  // 5️⃣ Trier les jours
+  // -----------------------------
+  const keys = Object.keys(grouped).sort((a, b) => a - b);
+
+  // -----------------------------
+  // 6️⃣ Affichage
+  // -----------------------------
+  for (const key of keys) {
+    const date = new Date(parseInt(key));
+    const label = date.toLocaleDateString("fr-FR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long"
+    });
+
+    const block = document.createElement("div");
     block.className = "day-block";
-    block.style.marginBottom = "25px";
 
-    var title = document.createElement("div");
+    const title = document.createElement("div");
     title.className = "day-title";
-    title.style.fontSize = "20px";
-    title.style.fontWeight = "bold";
-    title.style.marginBottom = "10px";
     title.textContent = "📅 " + label;
     block.appendChild(title);
 
-    var dayEvents = grouped[keys[j]];
+    // Trier les événements du jour par heure
+    grouped[key].sort((a, b) => a.start - b.start);
 
-    for (var k = 0; k < dayEvents.length; k++) {
-      var ev = dayEvents[k];
-
-      var table = document.createElement("table");
+    for (const ev of grouped[key]) {
+      const table = document.createElement("table");
       table.style.width = "100%";
-      table.style.marginBottom = "10px";
 
-      var tr1 = document.createElement("tr");
-      var tr2 = document.createElement("tr");
+      const tr1 = document.createElement("tr");
+      const tr2 = document.createElement("tr");
 
-      var tdLeft1 = document.createElement("td");
-      tdLeft1.rowSpan = "2";
-      tdLeft1.style.verticalAlign = "top";
-      tdLeft1.style.fontSize = "16px";
-      tdLeft1.style.paddingRight = "10px";
-      tdLeft1.textContent = ev.summary;
+      const tdLeft = document.createElement("td");
+      tdLeft.rowSpan = "2";
+      tdLeft.style.verticalAlign = "top";
+      tdLeft.style.paddingRight = "10px";
+      tdLeft.textContent = ev.summary;
 
-      var tdRight1 = document.createElement("td");
+      const tdRight1 = document.createElement("td");
       tdRight1.style.textAlign = "right";
-      tdRight1.style.fontSize = "16px";
       tdRight1.textContent = "🕘 " + formatTime(ev.start);
 
-      var tdRight2 = document.createElement("td");
+      const tdRight2 = document.createElement("td");
       tdRight2.style.textAlign = "right";
-      tdRight2.style.fontSize = "16px";
       tdRight2.textContent = ev.end ? formatTime(ev.end) : "";
 
-      tr1.appendChild(tdLeft1);
+      tr1.appendChild(tdLeft);
       tr1.appendChild(tdRight1);
       tr2.appendChild(tdRight2);
 
@@ -132,10 +141,7 @@ function displayGroupedEvents(events) {
 
       block.appendChild(table);
 
-      var hr = document.createElement("hr");
-      hr.style.border = "0";
-      hr.style.borderTop = "1px solid #ccc";
-      hr.style.margin = "10px 0";
+      const hr = document.createElement("hr");
       block.appendChild(hr);
     }
 
