@@ -14,36 +14,40 @@
 
     h1 {
       font-size: 24px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
-    h2 {
+    .day-block {
+      margin-bottom: 25px;
+    }
+
+    .day-title {
       font-size: 20px;
-      margin-top: 25px;
+      font-weight: bold;
       margin-bottom: 10px;
     }
 
-    .event {
-      background: white;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      border: 1px solid #ddd;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    td {
+      padding: 2px 0;
+      font-size: 16px;
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid #ccc;
+      margin: 10px 0;
     }
   </style>
 </head>
 
 <body>
-  <h1 id="date-title">Calendrier du jour</h1>
-
-  <h2>Aujourd’hui</h2>
-  <div id="today"></div>
-
-  <h2>Demain</h2>
-  <div id="tomorrow"></div>
-
-  <h2>À venir</h2>
-  <div id="upcoming"></div>
+  <h1>Calendrier du jour</h1>
+  <div id="calendar"></div>
 
   <script src="calendar.js"></script>
 </body>
