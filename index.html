@@ -1,50 +1,50 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendrier iCloud</title>
+  <meta charset="UTF-8">
+  <title>Calendrier iCloud</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
 
-        h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
+    h2 {
+      font-size: 20px;
+      margin-top: 25px;
+      margin-bottom: 10px;
+    }
 
-        h2 {
-            font-size: 20px;
-            margin-top: 25px;
-            margin-bottom: 10px;
-        }
-
-        .event {
-            background: white;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            border: 1px solid #ddd;
-        }
-    </style>
+    .event {
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border: 1px solid #ddd;
+    }
+  </style>
 </head>
 
 <body>
-    <h1 id="date-title">Calendrier du jour</h1>
+  <h1 id="date-title">Calendrier du jour</h1>
 
-    <h2>Aujourd’hui</h2>
-    <div id="today"></div>
+  <h2>Aujourd’hui</h2>
+  <div id="today"></div>
 
-    <h2>Demain</h2>
-    <div id="tomorrow"></div>
+  <h2>Demain</h2>
+  <div id="tomorrow"></div>
 
-    <h2>À venir</h2>
-    <div id="upcoming"></div>
+  <h2>À venir</h2>
+  <div id="upcoming"></div>
 
-    <script src="calendar.js"></script>
+  <!-- ✅ Appel du script JavaScript compatible vieux Safari -->
+  <script src="calendar.js"></script>
 </body>
 </html>
